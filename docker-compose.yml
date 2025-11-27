@@ -1,0 +1,13 @@
+services:
+  homon:
+    image: docker.io/checkelmann/homon:latest
+    container_name: homon
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=file:/app/data/homon.db
+      - NODE_ENV=production
+      - APP_URL=http://localhost:3000
+    restart: unless-stopped
