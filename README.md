@@ -54,7 +54,10 @@
 1.  **Deploy with Docker Compose**:
 
     ```bash
-    wget ht
+    wget https://raw.githubusercontent.com/heckelmann/homon/refs/heads/main/docker-compose.yml
+
+    mkdir data
+
     docker-compose up -d
     ```
 
@@ -63,13 +66,6 @@
 
     *Data is persisted in the `./data` directory.*
 
-### Multi-Architecture Build
-
-Build for AMD64 and ARM64 using the included script:
-
-```bash
-./build_multi_arch.sh <your-image-name:tag>
-```
 
 ### Manual Installation
 
@@ -96,8 +92,7 @@ Create a `.env` file or configure via Docker environment variables:
 
 - `DATABASE_URL`: Path to SQLite DB (default: `"file:./data/homon.db"`)
 - `APP_URL`: The public URL of the application (required for correct OAuth redirects behind proxies).
-- `NEXTAUTH_SECRET`: Secret for session encryption.
-- `NEXTAUTH_URL`: Canonical URL of the site.
+
 
 ### OTLP Export
 Configure OpenTelemetry export in the UI settings to send metrics to your observability stack.
