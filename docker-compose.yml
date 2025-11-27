@@ -1,6 +1,6 @@
 services:
   homon:
-    image: ghcr.io/heckelmann/homon:latest
+    image: ghcr.io/heckelmann/homon:main
     container_name: homon
     ports:
       - "3000:3000"

@@ -9,6 +9,9 @@
 
 **Homon** is a futuristic, agentless system monitoring dashboard built with Next.js. It connects to your Linux servers via SSH to provide real-time metrics, process management, and Docker container oversight, all wrapped in a sleek cyberpunk interface.
 
+![Dashboard](docs/screen01.png)
+![Host detais](docs/screen02.png)
+
 ## ✨ Features
 
 ### 🔍 Agentless Monitoring
