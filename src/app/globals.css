@@ -53,3 +53,23 @@ body {
   box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
   backdrop-filter: blur(5px);
 }
+
+/* Snow Effect */
+.snowflake {
+  position: absolute;
+  top: -20px;
+  color: white;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  animation-name: fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(-10vh) translateX(0);
+  }
+  100% {
+    transform: translateY(110vh) translateX(20px);
+  }
+}
