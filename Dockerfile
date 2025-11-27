@@ -1,10 +1,10 @@
-FROM node:20-alpine AS deps
+FROM --platform=$BUILDPLATFORM node:20-alpine AS deps
 RUN apk add --no-cache openssl
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 
-FROM node:20-alpine AS builder
+FROM --platform=$BUILDPLATFORM node:20-alpine AS builder
 RUN apk add --no-cache openssl
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -14,7 +14,7 @@ COPY . .
 ENV DATABASE_URL="file:./homon.db"
 
 RUN npx prisma generate
-RUN npm run build
+RUN --mount=type=cache,target=/app/.next/cache npm run build
 RUN npx -y esbuild server.ts --bundle --platform=node --outfile=dist/server.js --external:next --external:ssh2 --external:socket.io --external:@prisma/client --external:bcryptjs --external:jose
 RUN npx -y esbuild src/scheduler.ts --bundle --platform=node --outfile=dist/scheduler.js --external:@prisma/client --external:ssh2
 
