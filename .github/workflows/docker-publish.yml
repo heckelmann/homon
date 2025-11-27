@@ -9,6 +9,7 @@ on:
       - 'docs/**'
       - 'LICENSE'
       - .github/workflows/docker-publish.yml
+      - docker-compose.yml
   pull_request:
     branches: [ "main" ]
     paths-ignore:
@@ -16,6 +17,7 @@ on:
       - 'docs/**'
       - 'LICENSE'
       - .github/workflows/docker-publish.yml
+      - docker-compose.yml
 
 env:
   REGISTRY: ghcr.io

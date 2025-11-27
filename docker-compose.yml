@@ -1,6 +1,6 @@
 services:
   homon:
-    image: docker.io/checkelmann/homon:latest
+    image: ghcr.io/heckelmann/homon:latest
     container_name: homon
     ports:
       - "3000:3000"
