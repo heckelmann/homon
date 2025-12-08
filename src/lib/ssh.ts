@@ -530,3 +530,48 @@ export const createDirectory = async (
     });
   });
 };
+
+export const getDockerLogs = async (
+  host: string,
+  port: number,
+  username: string,
+  containerId: string,
+  tail: number = 100,
+  password?: string,
+  privateKey?: string
+): Promise<string> => {
+  const { Client } = await import('ssh2');
+
+  return new Promise((resolve, reject) => {
+    const conn = new Client();
+
+    conn.on('ready', () => {
+      conn.exec(`docker logs --tail ${tail} ${containerId}`, (err, stream) => {
+        if (err) {
+          conn.end();
+          return reject(err);
+        }
+        
+        let data = '';
+        
+        stream.on('close', () => {
+          conn.end();
+          resolve(data);
+        }).on('data', (chunk: any) => {
+          data += chunk.toString();
+        }).stderr.on('data', (chunk: any) => {
+          data += chunk.toString();
+        });
+      });
+    }).on('error', (err) => {
+      reject(err);
+    }).connect({
+      host,
+      port,
+      username,
+      password,
+      privateKey,
+      readyTimeout: 20000,
+    });
+  });
+};

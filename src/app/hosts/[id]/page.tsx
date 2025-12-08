@@ -479,6 +479,7 @@ export default function HostDetailsPage({ params }: { params: Promise<{ id: stri
               containers={details.docker} 
               interfaces={details.network?.interfaces || []} 
               mainIp={details.network?.mainIp}
+              hostId={parseInt(id)}
             />
           </div>
         )}

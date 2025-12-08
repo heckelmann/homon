@@ -2,16 +2,19 @@
 
 import { useState } from 'react';
 import { DockerContainer } from '@/lib/ssh';
+import DockerLogsModal from './DockerLogsModal';
 
 interface DockerListProps {
   containers: DockerContainer[];
   interfaces: { name: string; ip: string }[];
   mainIp?: string;
+  hostId: number;
 }
 
-export default function DockerList({ containers, interfaces, mainIp }: DockerListProps) {
+export default function DockerList({ containers, interfaces, mainIp, hostId }: DockerListProps) {
   const [sortField, setSortField] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedContainer, setSelectedContainer] = useState<DockerContainer | null>(null);
 
   const getHostIp = () => {
     if (mainIp && mainIp !== '127.0.0.1') return mainIp;
@@ -129,6 +132,7 @@ export default function DockerList({ containers, interfaces, mainIp }: DockerLis
             <SortHeader field="status" label="Status" />
             <SortHeader field="state" label="State" />
             <th className="px-4 py-3 font-medium text-blue-300 uppercase">Ports</th>
+            <th className="px-4 py-3 font-medium text-blue-300 uppercase w-10">Logs</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-blue-500/10">
@@ -161,10 +165,31 @@ export default function DockerList({ containers, interfaces, mainIp }: DockerLis
                   ))}
                 </div>
               </td>
+              <td className="px-4 py-3">
+                <button
+                  onClick={() => setSelectedContainer(container)}
+                  className="p-1.5 text-cyan-400 hover:text-cyan-200 hover:bg-cyan-900/30 rounded transition-colors"
+                  title="View Logs"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      
+      {selectedContainer && (
+        <DockerLogsModal
+          isOpen={!!selectedContainer}
+          onClose={() => setSelectedContainer(null)}
+          hostId={hostId}
+          containerId={selectedContainer.id}
+          containerName={selectedContainer.name}
+        />
+      )}
     </div>
   );
 }
