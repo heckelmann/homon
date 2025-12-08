@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { encrypt } from '@/lib/encryption';
 
 export async function DELETE(
   request: Request,
@@ -22,21 +23,29 @@ export async function PUT(
   const { id } = await params;
   const body = await request.json();
 
+  const data: any = {
+    label: body.label,
+    hostname: body.hostname,
+    port: body.port,
+    username: body.username || null,
+    credentialId: body.credentialId ? parseInt(body.credentialId) : null,
+    refreshInterval: body.refreshInterval,
+    retentionDays: body.retentionDays,
+  };
+
+  if (body.password !== '********') {
+    data.password = body.password ? encrypt(body.password) : null;
+  }
+
+  if (body.privateKey !== '********') {
+    data.privateKey = body.privateKey ? encrypt(body.privateKey) : null;
+  }
+
   const host = await prisma.host.update({
     where: {
       id: parseInt(id),
     },
-    data: {
-      label: body.label,
-      hostname: body.hostname,
-      port: body.port,
-      username: body.username || null,
-      password: body.password || null,
-      privateKey: body.privateKey || null,
-      credentialId: body.credentialId ? parseInt(body.credentialId) : null,
-      refreshInterval: body.refreshInterval,
-      retentionDays: body.retentionDays,
-    },
+    data,
   });
 
   return NextResponse.json(host);

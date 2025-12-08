@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { encrypt } from '@/lib/encryption';
 
 export async function PUT(
   request: Request,
@@ -10,14 +11,22 @@ export async function PUT(
     const body = await request.json();
     const { name, username, password, privateKey } = body;
 
+    const data: any = {
+      name,
+      username,
+    };
+
+    if (password !== '********') {
+      data.password = password ? encrypt(password) : null;
+    }
+
+    if (privateKey !== '********') {
+      data.privateKey = privateKey ? encrypt(privateKey) : null;
+    }
+
     const credential = await prisma.credential.update({
       where: { id: parseInt(id) },
-      data: {
-        name,
-        username,
-        password,
-        privateKey,
-      },
+      data,
     });
 
     return NextResponse.json(credential);

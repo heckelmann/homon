@@ -1,6 +1,7 @@
 import { prisma } from './lib/prisma';
 import { getSystemMetrics } from './lib/ssh';
 import { exportMetricsToOtlp } from './lib/otlp';
+import { decrypt } from './lib/encryption';
 
 const POLL_INTERVAL = 10000; // Check every 10 seconds
 const PRUNE_INTERVAL = 60 * 60 * 1000; // Prune every hour
@@ -58,8 +59,8 @@ async function collectMetrics() {
         console.log(`Collecting metrics for ${host.label} (${host.hostname})...`);
         try {
           const username = host.credential?.username || host.username;
-          const password = host.credential?.password || host.password;
-          const privateKey = host.credential?.privateKey || host.privateKey;
+          const password = decrypt(host.credential?.password || host.password);
+          const privateKey = decrypt(host.credential?.privateKey || host.privateKey);
 
           if (!username) {
             throw new Error('No username configured');

@@ -10,4 +10,5 @@ services:
       - DATABASE_URL=file:/app/data/homon.db
       - NODE_ENV=production
       - APP_URL=http://localhost:3000
+      - ENCRYPTION_KEY=your_encryption_key_here
     restart: unless-stopped

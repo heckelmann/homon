@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getHostDetails } from '@/lib/ssh';
+import { decrypt } from '@/lib/encryption';
 
 export async function GET(
   request: Request,
@@ -21,8 +22,8 @@ export async function GET(
   }
 
   const username = host.credential?.username || host.username;
-  const password = host.credential?.password || host.password;
-  const privateKey = host.credential?.privateKey || host.privateKey;
+  const password = decrypt(host.credential?.password || host.password);
+  const privateKey = decrypt(host.credential?.privateKey || host.privateKey);
 
   if (!username) {
     return NextResponse.json({ error: 'No username configured for this host' }, { status: 400 });

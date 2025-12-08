@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { encrypt } from '@/lib/encryption';
 
 export async function GET() {
   const credentials = await prisma.credential.findMany({
     orderBy: { name: 'asc' },
   });
-  return NextResponse.json(credentials);
+  // Mask sensitive data
+  const safeCredentials = credentials.map((cred) => ({
+    ...cred,
+    password: cred.password ? '********' : null,
+    privateKey: cred.privateKey ? '********' : null,
+  }));
+  return NextResponse.json(safeCredentials);
 }
 
 export async function POST(request: Request) {
@@ -24,8 +31,8 @@ export async function POST(request: Request) {
       data: {
         name,
         username,
-        password,
-        privateKey,
+        password: encrypt(password) || null,
+        privateKey: encrypt(privateKey) || null,
       },
     });
 

@@ -61,6 +61,9 @@
 
     mkdir data
 
+    # Generate a secure encryption key and update the configuration
+    sed -i "s/your_encryption_key_here/$(openssl rand -hex 32)/" docker-compose.yml
+
     docker-compose up -d
     ```
 
@@ -95,6 +98,7 @@ Create a `.env` file or configure via Docker environment variables:
 
 - `DATABASE_URL`: Path to SQLite DB (default: `"file:./data/homon.db"`)
 - `APP_URL`: The public URL of the application (required for correct OAuth redirects behind proxies).
+- `ENCRYPTION_KEY`: A 32-byte hex string used to encrypt sensitive credentials (passwords/keys) in the database. **Required**.
 
 
 ### OTLP Export

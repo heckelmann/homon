@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Host } from '@prisma/client';
+import { encrypt } from '@/lib/encryption';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,8 +26,8 @@ export async function POST(request: Request) {
       hostname,
       port: parseInt(port),
       username: username || null,
-      password: password || null,
-      privateKey: privateKey || null,
+      password: encrypt(password) || null,
+      privateKey: encrypt(privateKey) || null,
       credentialId: credentialId ? parseInt(credentialId) : null,
       refreshInterval: parseInt(refreshInterval) || 60,
       retentionDays: parseInt(retentionDays) || 30,
