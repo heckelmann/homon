@@ -6,6 +6,7 @@ import { Client } from 'ssh2';
 import { prisma } from './src/lib/prisma';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { decrypt } from './src/lib/encryption';
 
 const execAsync = promisify(exec);
 
@@ -66,8 +67,8 @@ runMigrations().then(() => {
         }
 
         const username = host.credential?.username || host.username;
-        const password = host.credential?.password || host.password;
-        const privateKey = host.credential?.privateKey || host.privateKey;
+        const password = decrypt(host.credential?.password || host.password);
+        const privateKey = decrypt(host.credential?.privateKey || host.privateKey);
 
         if (!username) {
           socket.emit('error', 'No username configured');
