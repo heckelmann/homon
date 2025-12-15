@@ -61,6 +61,18 @@ export default function DockerLogsModal({ isOpen, onClose, hostId, containerId, 
     }
   }, [logs, following]);
 
+  const handleDownload = () => {
+    const blob = new Blob([logs], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${containerName}-${new Date().toISOString()}.log`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -98,12 +110,24 @@ export default function DockerLogsModal({ isOpen, onClose, hostId, containerId, 
               {following ? 'Auto-refreshing every 2s' : 'Paused'}
             </span>
           </div>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-xs font-medium transition-colors"
-          >
-            Close
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownload}
+              className="px-4 py-2 bg-blue-900/30 hover:bg-blue-900/50 text-blue-300 border border-blue-500/30 rounded text-xs font-medium transition-colors flex items-center gap-2"
+              title="Download Logs"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download
+            </button>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-xs font-medium transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </Modal>

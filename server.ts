@@ -24,8 +24,8 @@ async function runMigrations() {
     console.log('Migrations completed successfully.');
   } catch (error) {
     console.error('Error running migrations:', error);
-    // We might want to exit if migrations fail, or continue and hope for the best
-    // process.exit(1); 
+    // Exit process if migrations fail
+    process.exit(1); 
   }
 }
 
