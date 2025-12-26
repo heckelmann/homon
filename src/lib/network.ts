@@ -18,6 +18,10 @@ export interface ScanResult {
   openPorts?: number[];
 }
 
+export type ScanEvent = 
+  | { type: 'device'; device: ScanResult }
+  | { type: 'progress'; currentIp: string; percent: number };
+
 async function getArpTable(): Promise<Map<string, { mac: string, hostname?: string }>> {
   const map = new Map();
   try {
@@ -177,7 +181,7 @@ function scanRange(range: string): Promise<ScanResult[]> {
   });
 }
 
-export async function* scanNetworkStream(range: string, withPorts: boolean = false) {
+export async function* scanNetworkStream(range: string, withPorts: boolean = false): AsyncGenerator<ScanEvent> {
   const { start, end, total } = parseCidr(range);
   
   // Pre-fetch ARP table
@@ -214,9 +218,9 @@ export async function* scanNetworkStream(range: string, withPorts: boolean = fal
          } catch {}
        }
 
-       yield { type: 'device', device: result };
+       yield { type: 'device', device: result } as ScanEvent;
     }
-    yield { type: 'progress', currentIp: 'Done', percent: 100 };
+    yield { type: 'progress', currentIp: 'Done', percent: 100 } as ScanEvent;
     return;
   }
 
@@ -231,7 +235,7 @@ export async function* scanNetworkStream(range: string, withPorts: boolean = fal
       type: 'progress', 
       currentIp: longToIp(current), 
       percent: Math.round(((current - start) / total) * 100) 
-    };
+    } as ScanEvent;
 
     try {
       const chunkResults = await scanRange(chunkRange);
@@ -264,7 +268,7 @@ export async function* scanNetworkStream(range: string, withPorts: boolean = fal
           } catch {}
         }
         
-        yield { type: 'device', device: result };
+        yield { type: 'device', device: result } as ScanEvent;
       }
     } catch (e) {
       console.error(`Error scanning chunk ${chunkRange}`, e);
@@ -273,7 +277,7 @@ export async function* scanNetworkStream(range: string, withPorts: boolean = fal
     current += chunkSize;
   }
   
-  yield { type: 'progress', currentIp: 'Done', percent: 100 };
+  yield { type: 'progress', currentIp: 'Done', percent: 100 } as ScanEvent;
 }
 
 export function scanNetwork(range: string): Promise<ScanResult[]> {
