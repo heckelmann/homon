@@ -95,7 +95,7 @@ export default function Modal({ isOpen, onClose, title, children, triggerRef, cl
             }}
             exit={exit}
           >
-            <div className="flex justify-between items-center p-6 border-b border-cyan-900/30 bg-cyan-950/10 shrink-0">
+            <div className="relative z-10 flex justify-between items-center p-6 border-b border-cyan-900/30 bg-cyan-950/10 shrink-0">
               <h2 className="text-xl font-bold text-cyan-400 tracking-widest uppercase flex items-center gap-2">
                 <span className="w-2 h-2 bg-cyan-500 rounded-full shadow-[0_0_5px_#06b6d4]"></span>
                 {title}
