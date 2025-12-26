@@ -25,6 +25,8 @@ export default function NetworkScanner() {
   const [portScanning, setPortScanning] = useState<string | null>(null);
   const [adoptDevice, setAdoptDevice] = useState<DiscoveredDevice | null>(null);
   const [scanWithPorts, setScanWithPorts] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: 'ip' | 'hostname'; direction: 'asc' | 'desc' }>({ key: 'ip', direction: 'asc' });
 
   useEffect(() => {
     fetch('/api/network/scan')
@@ -142,6 +144,42 @@ export default function NetworkScanner() {
     return ports.includes(22);
   };
 
+  const ipToLong = (ip: string) => {
+    return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+  };
+
+  const handleSort = (key: 'ip' | 'hostname') => {
+    setSortConfig(current => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const filteredAndSortedDevices = devices
+    .filter(device => {
+      const query = searchQuery.toLowerCase();
+      return (
+        device.ip.includes(query) ||
+        (device.hostname && device.hostname.toLowerCase().includes(query))
+      );
+    })
+    .sort((a, b) => {
+      const direction = sortConfig.direction === 'asc' ? 1 : -1;
+      
+      if (sortConfig.key === 'ip') {
+        return (ipToLong(a.ip) - ipToLong(b.ip)) * direction;
+      }
+      
+      const hostA = a.hostname || '';
+      const hostB = b.hostname || '';
+      // Handle empty hostnames by pushing them to the end
+      if (!hostA && !hostB) return 0;
+      if (!hostA) return 1;
+      if (!hostB) return -1;
+      
+      return hostA.localeCompare(hostB) * direction;
+    });
+
   return (
     <div className="space-y-6">
       <div className="bg-[#0b101b]/80 backdrop-blur-sm p-6 border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
@@ -155,15 +193,27 @@ export default function NetworkScanner() {
         </div>
 
         <div className="flex gap-4 mb-8">
-          <div className="flex-1">
-            <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">Network Range (CIDR)</label>
-            <input
-              type="text"
-              value={range}
-              onChange={(e) => setRange(e.target.value)}
-              placeholder="e.g. 192.168.1.0/24"
-              className="w-full bg-[#0b101b] border border-gray-800 p-2 rounded text-gray-200 focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 outline-none placeholder-gray-600 font-mono"
-            />
+          <div className="flex-1 flex gap-4">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">Network Range (CIDR)</label>
+              <input
+                type="text"
+                value={range}
+                onChange={(e) => setRange(e.target.value)}
+                placeholder="e.g. 192.168.1.0/24"
+                className="w-full bg-[#0b101b] border border-gray-800 p-2 rounded text-gray-200 focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 outline-none placeholder-gray-600 font-mono"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">Search</label>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search IP or Hostname..."
+                className="w-full bg-[#0b101b] border border-gray-800 p-2 rounded text-gray-200 focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 outline-none placeholder-gray-600 font-mono"
+              />
+            </div>
           </div>
           <div className="flex items-end gap-4">
             <div className="flex items-center h-10">
@@ -251,8 +301,32 @@ export default function NetworkScanner() {
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="bg-cyan-900/20 border-b border-cyan-500/30">
-                <th className="px-4 py-3 font-medium text-cyan-300 uppercase">IP Address</th>
-                <th className="px-4 py-3 font-medium text-cyan-300 uppercase">Hostname</th>
+                <th 
+                  className="px-4 py-3 font-medium text-cyan-300 uppercase cursor-pointer hover:text-cyan-100 transition-colors select-none"
+                  onClick={() => handleSort('ip')}
+                >
+                  <div className="flex items-center gap-2">
+                    IP Address
+                    {sortConfig.key === 'ip' && (
+                      <span className="text-cyan-500">
+                        {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th 
+                  className="px-4 py-3 font-medium text-cyan-300 uppercase cursor-pointer hover:text-cyan-100 transition-colors select-none"
+                  onClick={() => handleSort('hostname')}
+                >
+                  <div className="flex items-center gap-2">
+                    Hostname
+                    {sortConfig.key === 'hostname' && (
+                      <span className="text-cyan-500">
+                        {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
                 <th className="px-4 py-3 font-medium text-cyan-300 uppercase">Status</th>
                 <th className="px-4 py-3 font-medium text-cyan-300 uppercase">Last Seen</th>
                 <th className="px-4 py-3 font-medium text-cyan-300 uppercase">Open Ports</th>
@@ -260,14 +334,14 @@ export default function NetworkScanner() {
               </tr>
             </thead>
             <tbody className="divide-y divide-cyan-500/10">
-              {devices.length === 0 ? (
+              {filteredAndSortedDevices.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-gray-500 italic">
-                    No devices found. Run a scan to discover devices.
+                    {devices.length === 0 ? "No devices found. Run a scan to discover devices." : "No matching devices found."}
                   </td>
                 </tr>
               ) : (
-                devices.map((device) => (
+                filteredAndSortedDevices.map((device) => (
                   <tr key={device.id} className="hover:bg-cyan-500/5 transition-colors group">
                     <td className="px-4 py-3 font-mono text-gray-300">{device.ip}</td>
                     <td className="px-4 py-3 font-mono text-gray-300 text-xs">{device.hostname || '-'}</td>
