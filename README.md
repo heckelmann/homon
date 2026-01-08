@@ -20,10 +20,18 @@
 - **Hardware Matrix**: Detailed CPU model, core count, and memory statistics.
 - **Network Matrix**: Interface monitoring, IP addresses, Gateway, and DNS configuration.
 
+### 🌐 Network Discovery
+- **Smart Scanner**: Scan network ranges (CIDR) to discover active devices.
+- **Port Scanning**: Optional port scan to identify open services (SSH, HTTP, etc.).
+- **Advanced Resolution**: Resolves hostnames via ARP, NetBIOS, and Reverse DNS.
+- **Search & Sort**: Filter discovered devices by IP/Hostname and sort results.
+- **One-Click Adoption**: Easily adopt discovered hosts into monitoring with pre-filled details.
+
 ### 📊 Visual Analytics
 - **Live Gauges**: Real-time CPU and Memory load visualization.
 - **Historical Data**: Interactive charts for CPU, Memory, and Disk usage over time (1h, 6h, 24h, 7d).
 - **Storage Matrix**: Visual disk usage bars and filesystem details.
+- **Disk IO Latency**: Real-time read/write await times and utilization metrics (requires `sysstat` pkg).
 
 ### 🛠️ Advanced Management
 - **Process Matrix**: Live view of top running processes with sorting capabilities.

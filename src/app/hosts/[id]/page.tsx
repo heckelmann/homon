@@ -466,6 +466,53 @@ export default function HostDetailsPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
+        {/* Disk IO Latency */}
+        {details.diskIO && details.diskIO.length > 0 && (
+          <div className="bg-[#0b101b]/80 backdrop-blur-sm p-6 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)] mb-8">
+            <h2 className="text-xl font-bold text-amber-400 mb-6 flex items-center gap-2 uppercase tracking-wide">
+              <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Disk IO Latency
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="bg-amber-900/20 border-b border-amber-500/30">
+                    <th className="px-4 py-3 font-medium text-amber-300 uppercase">Device</th>
+                    <th className="px-4 py-3 font-medium text-amber-300 uppercase">Read Await (ms)</th>
+                    <th className="px-4 py-3 font-medium text-amber-300 uppercase">Write Await (ms)</th>
+                    <th className="px-4 py-3 font-medium text-amber-300 uppercase">Utilization</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-amber-500/10">
+                  {details.diskIO.map((io, i) => (
+                    <tr key={i} className="hover:bg-amber-500/10 transition-colors">
+                      <td className="px-4 py-3 font-medium text-gray-200">{io.device}</td>
+                      <td className="px-4 py-3 text-gray-400 font-mono">{io.read_await}</td>
+                      <td className="px-4 py-3 text-gray-400 font-mono">{io.write_await}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 bg-gray-800 h-2">
+                             <div 
+                                className={`h-2 shadow-[0_0_5px_currentColor] ${
+                                  parseFloat(io.util) > 90 ? 'bg-red-500 text-red-500' : 
+                                  parseFloat(io.util) > 70 ? 'bg-yellow-500 text-yellow-500' : 'bg-amber-500 text-amber-500'
+                                }`}
+                                style={{ width: `${Math.min(parseFloat(io.util), 100)}%` }}
+                             ></div>
+                          </div>
+                          <span className="text-gray-300 w-16 text-right font-mono">{io.util}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Docker Containers */}
         {details.docker && (
           <div className="bg-[#0b101b]/80 backdrop-blur-sm p-6 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)] mb-8">

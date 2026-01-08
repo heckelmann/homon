@@ -64,6 +64,14 @@ export interface HostDetails {
   };
   processes: ProcessInfo[];
   docker?: DockerContainer[];
+  diskIO?: DiskIO[];
+}
+
+export interface DiskIO {
+  device: string;
+  read_await: string;
+  write_await: string;
+  util: string;
 }
 
 export const getHostDetails = async (
@@ -110,7 +118,8 @@ export const getHostDetails = async (
         cat /etc/resolv.conf | grep nameserver | awk '{print $2}' && echo "---SPLIT---" &&
         ps -eo pid,user,%cpu,%mem,comm --sort=-%cpu | head -n 21 | tail -n 20 | awk '{print $1 "||" $2 "||" $3 "||" $4 "||" $5}' && echo "---SPLIT---" &&
         (docker ps --format '{{.ID}}||{{.Image}}||{{.Names}}||{{.Status}}||{{.State}}||{{.Ports}}' 2>/dev/null || echo "DOCKER_NOT_FOUND") && echo "---SPLIT---" &&
-        (docker stats --no-stream --format '{{.ID}}||{{.CPUPerc}}||{{.MemPerc}}' 2>/dev/null || echo "DOCKER_STATS_NOT_FOUND")
+        (docker stats --no-stream --format '{{.ID}}||{{.CPUPerc}}||{{.MemPerc}}' 2>/dev/null || echo "DOCKER_STATS_NOT_FOUND") && echo "---SPLIT---" &&
+        ((type iostat >/dev/null 2>&1 && iostat -d -x 1 2) || echo "IOSTAT_NOT_FOUND")
       `;
 
       conn.exec(cmd, (err, stream) => {
@@ -191,6 +200,51 @@ export const getHostDetails = async (
               return { pid, user, cpu, mem, command };
             }).filter(p => p.pid);
 
+            let diskIO: DiskIO[] | undefined;
+            if (parts[16]) {
+              const iostatOutput = parts[16].trim();
+              if (iostatOutput !== 'IOSTAT_NOT_FOUND') {
+                const ioMap = new Map<string, DiskIO>();
+                const lines = iostatOutput.split('\n');
+                
+                // Identify column indices based on header
+                let rAwaitIdx = 9;
+                let wAwaitIdx = 10;
+                let utilIdx = -1;
+
+                lines.forEach(line => {
+                  const safeLine = line.trim();
+                  if (safeLine.startsWith('Linux') || safeLine === '') return;
+                  
+                  const cols = safeLine.split(/\s+/);
+                  
+                  if (safeLine.startsWith('Device')) {
+                    // Update indices if possible
+                    const ra = cols.findIndex(c => c === 'r_await');
+                    const wa = cols.findIndex(c => c === 'w_await');
+                    const ut = cols.findIndex(c => c === '%util');
+                    if (ra !== -1) rAwaitIdx = ra;
+                    if (wa !== -1) wAwaitIdx = wa;
+                    if (ut !== -1) utilIdx = ut;
+                    return;
+                  }
+
+                  // Default util index is last if not found
+                  const currentUtilIdx = utilIdx !== -1 ? utilIdx : cols.length - 1;
+
+                  if (cols.length > Math.max(rAwaitIdx, wAwaitIdx)) {
+                    ioMap.set(cols[0], {
+                      device: cols[0],
+                      read_await: cols[rAwaitIdx],
+                      write_await: cols[wAwaitIdx],
+                      util: cols[currentUtilIdx]
+                    });
+                  }
+                });
+                diskIO = Array.from(ioMap.values());
+              }
+            }
+
             resolve({
               os: {
                 name: osName,
@@ -213,6 +267,7 @@ export const getHostDetails = async (
               },
               processes,
               docker,
+              diskIO,
             });
           } catch (e) {
             reject(e);
